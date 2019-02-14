@@ -5,11 +5,11 @@ defmodule Scraper.Application do
 
   use Application
 
-  def start(_type, _args) do
+  def start(_type, urls) do
     # List all child processes to be supervised
     children = [
       # Starts a worker by calling: Scraper.Worker.start_link(arg)
-      # {Scraper.Worker, arg}
+      {Scraper.Server, urls}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

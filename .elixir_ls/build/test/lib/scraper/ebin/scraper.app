@@ -2,7 +2,10 @@
              [{applications,[kernel,stdlib,elixir,logger,
                              chrome_remote_interface]},
               {description,"scraper"},
-              {modules,['Elixir.Scraper','Elixir.Scraper.Application']},
+              {modules,['Elixir.Scraper','Elixir.Scraper.Application',
+                        'Elixir.Scraper.Fields','Elixir.Scraper.Reporter',
+                        'Elixir.Scraper.Server','Elixir.Scraper.Utils',
+                        'Elixir.ScraperTest.Root']},
               {registered,[]},
               {vsn,"0.1.0"},
               {mod,{'Elixir.Scraper.Application',[]}}]}.

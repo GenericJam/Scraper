@@ -37,17 +37,17 @@ defmodule Scraper.Fields do
   def fields do
     [
       %{
-        :label => "reviews",
-        :list => [
-          ["class", "product-page--title-links"],
-          ["class", "review-rating__reviews-link"]
-        ]
-      },
-      %{
         :label => "title",
         :list => [
           ["id", "js-product-scope"],
           ["class", "js-product-name"]
+        ]
+      },
+      %{
+        :label => "reviews",
+        :list => [
+          ["class", "product-page--title-links"],
+          ["class", "review-rating__reviews-link"]
         ]
       },
       %{

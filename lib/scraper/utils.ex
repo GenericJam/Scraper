@@ -24,8 +24,6 @@ defmodule Scraper.Utils do
   "yo"
   """
   def text_from_node(node) do
-    # IO.puts(inspect(node, pretty: true))
-
     if node["children"] != nil do
       text_from_children(node["children"])
     end
@@ -49,10 +47,59 @@ defmodule Scraper.Utils do
   """
   def text_from_children([h | t]) do
     if h["nodeName"] == "#text" do
-      h["nodeValue"]
+      h["nodeValue"] |> String.trim()
     else
       text_from_children(t)
     end
+  end
+
+  @doc """
+  This checks if this value is probably a number
+  """
+  def check_for_number(value) do
+    # If it is more than half digits we'll call it a number
+    # 1.129,-  or 49,99 etc
+    if (value |> String.codepoints() |> how_many_digits()) / (value |> String.length()) > 0.5 do
+      process_number(String.codepoints(value)) |> Kernel.to_string()
+    else
+      # Don't do anything
+      value
+    end
+  end
+
+  @doc """
+  End of the number
+  """
+  def process_number([]) do
+    []
+  end
+
+  @doc """
+  Processing a number
+  Discard . and , replace - with 00
+  """
+  def process_number(["." | t]) do
+    process_number(t)
+  end
+
+  def process_number(["," | t]) do
+    process_number(t)
+  end
+
+  def process_number(["-" | t]) do
+    ["0" | ["0" | process_number(t)]]
+  end
+
+  def process_number([h | t]) do
+    [h | process_number(t)]
+  end
+
+  def how_many_digits([]) do
+    0
+  end
+
+  def how_many_digits([h | t]) do
+    if h > "0" and h < "9", do: 1 + how_many_digits(t), else: 0 + how_many_digits(t)
   end
 
   @doc """
@@ -70,8 +117,9 @@ defmodule Scraper.Utils do
   """
   def get_nodes_by_attributes(root, [h | t]) do
     # IO.puts(inspect(h, pretty: true))
-    node = get_node_by_attributes(root, h.list)
-    [%{:label => h.label, :node => node} | get_nodes_by_attributes(root, t)]
+    node = get_node_by_attributes(root, h.list) |> List.first()
+    value = text_from_node(node)
+    [%{:label => h.label, :value => value} | get_nodes_by_attributes(root, t)]
   end
 
   @doc """

@@ -10,7 +10,7 @@ defmodule Scraper.Server do
     urls = Fields.default_urls()
     IO.puts("Server running with #{length(urls)} URLs.")
     GenServer.start_link(__MODULE__, {:urls, urls}, name: __MODULE__)
-    Reporter.start_link(urls)
+    # Reporter.start_link(urls)
   end
 
   @doc """
@@ -44,8 +44,8 @@ defmodule Scraper.Server do
   @doc """
   This is the function that kicks it off
   """
-  def get_page do
-    GenServer.call(__MODULE__, :get_page)
+  def scrape do
+    GenServer.call(__MODULE__, :scrape)
   end
 
   @doc """
@@ -58,16 +58,20 @@ defmodule Scraper.Server do
   @doc """
   This partners with get_page
   """
-  def handle_call(:get_page, _from, state) do
+  def handle_call(:scrape, _from, state) do
     %{:server => server} = state
 
     {:ok, pages} = ChromeRemoteInterface.Session.list_pages(server)
+
+    # This creates more pages if there aren't already enough
     pages = get_create_pages(pages, server)
 
     Enum.each(pages, fn page ->
+      # Create as many pages as needed (5)
+      {:ok, page_pid} = ChromeRemoteInterface.PageSession.start_link(page)
       # This will return nil if the list is empty
       url = Reporter.get_next_url()
-      spawn(Scraper.Server, :page_scrape, [page, server, url])
+      spawn(Scraper.Server, :page_scrape, [page, server, url, page_pid])
     end)
 
     {:reply, state, state}
@@ -88,16 +92,14 @@ defmodule Scraper.Server do
   @doc """
   This is a guard for the end of the urls
   """
-  def page_scrape(_page, _server, nil) do
+  def page_scrape(_page, _server, nil, _page_pid) do
     IO.puts("URLs all processed")
   end
 
   @doc """
   This will get used once per page - does most of the heavy lifting
   """
-  def page_scrape(page, server, url) do
-    {:ok, page_pid} = ChromeRemoteInterface.PageSession.start_link(page)
-
+  def page_scrape(page, server, url, page_pid) do
     _navigation =
       ChromeRemoteInterface.RPC.Page.navigate(page_pid, %{
         "url" => url,
@@ -121,18 +123,18 @@ defmodule Scraper.Server do
     })
 
     # This may need to be adjusted depending on the network or machine
-    :timer.sleep(1000)
+    :timer.sleep(500)
 
     {:ok, root} = ChromeRemoteInterface.RPC.DOM.getDocument(page_pid, %{"depth" => -1})
     body = Utils.body_from_root(root)
 
     page_results = Utils.get_nodes_by_attributes(body, Fields.fields())
 
-    IO.puts("Finished!")
-    File.write("debug.ex", inspect(page_results, pretty: true))
+    IO.puts("Finished #{url}")
 
     Reporter.report_results(%{:url => url, :result => page_results})
-    # May need to resolve if ids aren't found
-    # ChromeRemoteInterface.RPC.DOM.resolveNode(page_pid, %{"backendNodeId" => root["result"]["root"]["backendNodeId"]})
+
+    # Go get another url to scrape
+    page_scrape(page, server, Reporter.get_next_url(), page_pid)
   end
 end

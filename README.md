@@ -1,7 +1,7 @@
 # Scraper
 
 This scrapes a list of URLs using the list supplied in /lib/scraper/fields.ex.
-It looks for elements to scrape using the list of tags which lead into the target element.
+It looks for elements to scrape using the list of attributes which lead into the target element. It only looks for attributes not tag type like p or div.
 
 ```
 <div id="super">
@@ -22,6 +22,34 @@ Put something like this in fields.ex. It is just for the purposes of disambiguat
     :label => "title",
     :list => [
       ["id", "super"],
+      ["class", "duper"]
+    ]
+  },
+  ...
+]
+```
+
+Will get 'This is a title'.
+
+It can also handle multiple classes if that's useful.
+
+```
+<div id="super">
+  <p class="many class names">
+    <h2 class="duper">This is a title</h2>
+  </p>
+  <div class="nonethat">
+    <p>Other text</p>
+  </div>
+</html>
+```
+
+```
+[
+  %{
+    :label => "title",
+    :list => [
+      ["class", "many class names"],
       ["class", "duper"]
     ]
   },

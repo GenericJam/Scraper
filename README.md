@@ -1,7 +1,7 @@
 # Scraper
 
 This scrapes a list of URLs using the list supplied in /lib/scraper/fields.ex.
-It looks for elements to scrape using the list of tags which lead into to target element.
+It looks for elements to scrape using the list of tags which lead into the target element.
 
 ```
 <div id="super">
@@ -28,6 +28,8 @@ Put something like this in fields.ex. It is just for the purposes of disambiguat
   ...
 ]
 ```
+
+Will get 'This is a title'.
 
 ## Installation
 

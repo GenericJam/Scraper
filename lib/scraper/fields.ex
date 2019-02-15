@@ -51,12 +51,21 @@ defmodule Scraper.Fields do
         ]
       },
       %{
+        :label => "rating",
+        :list => [
+          ["class", "product-page--title-links"],
+          ["class", "review-stars review-stars--large"],
+          ["class", "is-visually-hidden"]
+        ]
+      },
+      %{
         :label => "price",
         :list => [
           ["class", "product-order"],
           ["class", "sales-price__current"]
         ]
       }
+
       # %{
       #   :label => "init_images",
       #   :list => [
